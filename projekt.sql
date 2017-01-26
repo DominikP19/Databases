@@ -3,23 +3,31 @@ Autor: Dominik Piliszek-Slowinski
 */
 DROP TABLE Klienci CASCADE CONSTRAINTS; 
 DROP TRIGGER Klienci_trigger;
-DROP SEQUENCE Klienci_seq;
+/*DROP SEQUENCE Klienci_seq;*/
 DROP TABLE Obsluga_prawna CASCADE CONSTRAINTS;
-DROP SEQUENCE Obsluga_prawna_seq;
+/*DROP SEQUENCE Obsluga_prawna_seq;*/
+DROP TRIGGER Obsluga_prawna_trigger;
 DROP TABLE Transakcje CASCADE CONSTRAINTS;
-DROP SEQUENCE Transakcje_seq;
+/*DROP SEQUENCE Transakcje_seq;*/
+DROP TRIGGER Transakcje_trigger;
 DROP TABLE Oferty CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Oferty_seq;*/
+DROP TRIGGER Oferty_trigger;
 DROP TABLE Nieruchomosci CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Nieruchomosci_seq;*/
+DROP TRIGGER Nieruchomosci_trigger;
 DROP TABLE Reklamy CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Reklamy_seq;*/
+DROP TRIGGER Reklamy_trigger;
 DROP TABLE Pracownicy CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Pracownicy_seq;*/
+DROP TRIGGER Pracownicy_trigger;
 DROP TABLE Reklamacje CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Reklamacje_seq;*/
+DROP TRIGGER Reklamacje_trigger;
 DROP TABLE Skutecznosc_reklam CASCADE CONSTRAINTS;
 /*DROP SEQUENCE Skutecznosc_reklam_seq;*/
+DROP TRIGGER Skutecznosc_reklam_trigger;
 
 ALTER SESSION SET nls_date_format = 'DD/MM/YYYY';
 
@@ -134,7 +142,6 @@ BEGIN
 			Losowy_zawod := dbms_random.VALUE(1,Ilosc_zawodow);
 			Wynagrodzenie_stale := dbms_random.VALUE(3000, 150000);
 			Prowizja_proc := dbms_random.VALUE(1, 5);
-			/*PESEL := dbms_random.VALUE(10000000000, 99999999999);*/
 			INSERT INTO Obsluga_prawna VALUES (NULL, Imie_Nazwisko(Losowe_imie), Zawod(Losowy_zawod), 
 			Wynagrodzenie_stale, Prowizja_proc);
 	END LOOP;
@@ -146,14 +153,12 @@ Execute Obsluga_prawna_gen();
 
 /*SELECT * FROM Obsluga_prawna;  //sprawdzenie czy wszystko si?odalo */
 
-
 CREATE TABLE Pracownicy(
 	ID_Pracownika	INTEGER,
 	Imie_Nazwisko	varchar2(80) NOT NULL,
 	Stanowisko		varchar2(40) NOT NULL,
 	Wynagrodzenie	NUMBER(10,2)
 );
-
 /*sekwencja z triggerem dodajaca id do kazdego rekordu*/
 CREATE SEQUENCE Pracownicy_seq;
 CREATE OR REPLACE TRIGGER Pracownicy_trigger
@@ -252,7 +257,7 @@ BEGIN
 			Losowy_kod := dbms_random.VALUE(1,Ilosc_kodow);
       Losowe_wyposazenie := dbms_random.VALUE(1,Ilosc_wyposazen);
 			Metraz := dbms_random.VALUE(45, 450); /*zakres metrazy do losowania*/
-			INSERT INTO Nieruchomosci VALUES (NULL, Miasto(Losowe_miasto), Adres(Losowy_adres),  /*to_ char potencjalnie problematyczne*/
+			INSERT INTO Nieruchomosci VALUES (NULL, Miasto(Losowe_miasto), Adres(Losowy_adres), 
 			Kod_pocztowy(Losowy_kod), Metraz, Wyposazenie(Losowe_wyposazenie));
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano rekordy do tabeli Nieruchomosci!');
@@ -283,14 +288,27 @@ CREATE OR REPLACE PROCEDURE Oferty_gen AS
 	FK_Nieruchomosc INTEGER;
   Cena_ofertowa NUMBER(10);
 	Ilosc_nieruchomosci NUMBER;
+  
+  TYPE IDsTab IS TABLE OF Nieruchomosci.ID_Nieruchomosci%TYPE;
+  ids IDsTab;
+  /*
+  Teoretycznie moznaby losowac z zakresu IDs, poniewaz do tablic wstawiane sa po kolei i nic nie jest usuwane
+  ale lepiej zastosowac od razu ogolniejsze rozwiazanie zaciagajace istniejace IDs z tabeli.
+  */
+   CURSOR c1 IS /*stworzenie kursora z IDs nieruchomosci*/
+    SELECT ID_Nieruchomosci FROM Nieruchomosci;
 BEGIN
 	Ilosc:= 250;
   SELECT COUNT(*) INTO Ilosc_nieruchomosci FROM Nieruchomosci; /* zebranie ilosci nieruchomosci w tabeli*/
+  
+  OPEN c1;
+    FETCH c1 BULK COLLECT INTO ids;/*zebranie danych z kursora do tabeli*/
+  CLOSE c1;
 	
 	FOR i IN 1..Ilosc LOOP
 			FK_Nieruchomosc := dbms_random.VALUE(1, Ilosc_nieruchomosci); 
 			Cena_ofertowa := dbms_random.VALUE(100000, 15000000);
-			INSERT INTO Oferty VALUES (NULL, FK_Nieruchomosc, Cena_ofertowa);
+			INSERT INTO Oferty VALUES (NULL, ids(FK_Nieruchomosc), Cena_ofertowa);
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano reklamacje do bazy!');
 END Oferty_gen;
@@ -375,9 +393,67 @@ CREATE TABLE Skutecznosc_reklam(
 	FK_Reklama		INTEGER,
 	FK_Oferta		INTEGER
 );
+
+CREATE SEQUENCE Skutecznosc_reklam_seq;
+CREATE OR REPLACE TRIGGER Skutecznosc_reklam_trigger
+BEFORE INSERT ON Skutecznosc_reklam
+FOR EACH ROW
+BEGIN
+	:NEW.ID_1 := Skutecznosc_reklam_seq.NEXTVAL;
+END;
+
+
 ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_pk PRIMARY KEY(ID_1);
 ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_fk1 FOREIGN KEY(FK_Reklama) REFERENCES Reklamy(ID_Reklamy) ON DELETE CASCADE;
 ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_fk2 FOREIGN KEY(FK_Oferta) REFERENCES Oferty(ID_Oferty) ON DELETE CASCADE;
+
+CREATE OR REPLACE PROCEDURE Skutecznosc_reklam_gen AS
+  Ilosc NUMBER(10);
+	FK_Reklama INTEGER;
+  FK_Oferta INTEGER;
+  
+  TYPE IDsTabReklamy IS TABLE OF Reklamy.ID_Reklamy%TYPE;
+  ids1 IDsTabReklamy;
+  
+  TYPE IDsTabOferty IS TABLE OF Oferty.ID_Oferty%TYPE;
+  ids2 IDsTabOferty;
+  
+  Ilosc_ofert NUMBER;
+  Ilosc_Reklam NUMBER;
+  
+  CURSOR c1 IS 
+    SELECT ID_Reklamy FROM Reklamy;
+    
+  CURSOR c2 IS
+    SELECT ID_Oferty FROM Oferty;
+    
+BEGIN
+
+  OPEN c1;
+    FETCH c1 BULK COLLECT INTO ids1;/*zebranie danych z kursora do tabeli*/
+  CLOSE c1;
+  
+  SELECT COUNT(*) INTO Ilosc_Reklam FROM Reklamy;
+  
+  OPEN c2;
+    FETCH c2 BULK COLLECT INTO ids2;
+  CLOSE c2;
+  
+  SELECT COUNT(*) INTO Ilosc_ofert FROM Oferty;
+
+	Ilosc:= 250;
+	
+	FOR i IN 1..Ilosc LOOP
+			FK_Reklama := dbms_random.VALUE(1, Ilosc_reklam); 
+			FK_Oferta := dbms_random.VALUE(1, Ilosc_ofert);
+			INSERT INTO Skutecznosc_reklam VALUES (NULL, ids1(FK_Reklama), ids2(FK_Oferta));
+	END LOOP;
+	DBMS_OUTPUT.put_line('Pomyslnie uzupelnino tabele Skutecznosc_reklam!');
+END Skutecznosc_reklam_gen;
+
+DELETE FROM Skutecznosc_reklam;
+Execute Skutecznosc_reklam_gen();
+
 CREATE TABLE Transakcje(
 	ID_Transakcji		INTEGER,
 	FK_Obsluga_prawna	INTEGER,
@@ -386,6 +462,15 @@ CREATE TABLE Transakcje(
 	FK_Pracownik		INTEGER,
 	FK_Oferta			INTEGER
 );
+
+CREATE SEQUENCE Transakcje_seq;
+CREATE OR REPLACE TRIGGER Transakcje_trigger /*dorobic sprawdzanie czy kupujacy nie jest sprzedajacym na after insert*/
+BEFORE INSERT ON Transakcje
+FOR EACH ROW
+BEGIN
+	:NEW.ID_Transakcji := Transakcje_seq.NEXTVAL;
+END;
+
 ALTER TABLE Transakcje ADD CONSTRAINT transakcje_pk PRIMARY KEY(ID_Transakcji); 
 ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk1 FOREIGN KEY(FK_Obsluga_prawna) REFERENCES Obsluga_prawna(ID_Osoby) ON DELETE CASCADE;
 ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk2 FOREIGN KEY(FK_Kupujacy) REFERENCES Klienci(ID_Klienta) ON DELETE CASCADE;
@@ -393,6 +478,77 @@ ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk3 FOREIGN KEY(FK_Sprzedajacy)
 ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk4 FOREIGN KEY(FK_Pracownik) REFERENCES Pracownicy(ID_Pracownika) ON DELETE CASCADE;
 ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk5 FOREIGN KEY(FK_Oferta) REFERENCES Oferty(ID_Oferty) ON DELETE CASCADE;
 
+CREATE OR REPLACE PROCEDURE Transakcje_gen AS
+  Ilosc NUMBER(10);
+	FK_Obsluga_prawna INTEGER;
+  FK_Oferta INTEGER;
+  FK_Kupujacy INTEGER;
+  FK_Sprzedajacy INTEGER;
+  FK_Pracownik INTEGER;
+  
+  
+  TYPE IDsTabKlient IS TABLE OF Klienci.ID_Klienta%TYPE;
+  ids1 IDsTabKlient;
+  
+  TYPE IDsTabOferty IS TABLE OF Oferty.ID_Oferty%TYPE;
+  ids2 IDsTabOferty;
+  TYPE IDsTabObsluga IS TABLE OF Obsluga_prawna.ID_Osoby%TYPE;
+  ids3 IDsTabObsluga;
+  TYPE IDsTabPracownicy IS TABLE OF Pracownicy.ID_Pracownika%TYPE;
+  ids4 IDsTabPracownicy;
+  
+  Ilosc_ofert NUMBER;
+  Ilosc_klientow NUMBER;
+  Ilosc_pracownikow NUMBER;
+  Ilosc_obslugujacych NUMBER;
+  
+  CURSOR c1 IS 
+    SELECT ID_Klienta FROM Klienci;
+    
+  CURSOR c2 IS
+    SELECT ID_Oferty FROM Oferty;
+    
+  CURSOR c3 IS
+    SELECT ID_Osoby FROM Obsluga_prawna;
+  CURSOR c4 IS
+    SELECT ID_Pracownika FROM Pracownicy;
+    
+    
+BEGIN
+
+  OPEN c1;
+    FETCH c1 BULK COLLECT INTO ids1;/*zebranie danych z kursora do tabeli*/
+  CLOSE c1;
+  SELECT COUNT(*) INTO Ilosc_klientow FROM Klienci;
+  OPEN c2;
+    FETCH c2 BULK COLLECT INTO ids2;
+  CLOSE c2;
+  SELECT COUNT(*) INTO Ilosc_ofert FROM Oferty;
+  OPEN c3;
+    FETCH c3 BULK COLLECT INTO ids3;
+  CLOSE c3;
+  SELECT COUNT(*) INTO Ilosc_obslugujacych FROM Obsluga_prawna;
+  OPEN c4;
+    FETCH c4 BULK COLLECT INTO ids4;
+  CLOSE c4;
+  SELECT COUNT(*) INTO Ilosc_pracownikow FROM Pracownicy;
+
+	Ilosc:= 250;
+	
+	FOR i IN 1..Ilosc LOOP
+			FK_Kupujacy := dbms_random.VALUE(1, Ilosc_klientow); 
+      FK_Sprzedajacy := dbms_random.VALUE(1, Ilosc_klientow); 
+			FK_Oferta := dbms_random.VALUE(1, Ilosc_ofert);
+      FK_Pracownik := dbms_random.VALUE(1, Ilosc_pracownikow);
+      FK_Obsluga_prawna := dbms_random.VALUE(1, Ilosc_obslugujacych);
+			INSERT INTO Transakcje VALUES (NULL, ids3(FK_Obsluga_prawna), ids1(FK_Kupujacy), ids1(FK_Sprzedajacy),
+      ids4(FK_Pracownik), ids2(FK_Oferta));
+	END LOOP;
+	DBMS_OUTPUT.put_line('Pomyslnie uzupelnino tabele Skutecznosc_reklam!');
+END Transakcje_gen;
+
+DELETE FROM Transakcje;
+Execute Transakcje_gen(); /*licznik nadal gdzies wychodzi*/
 
 CREATE TABLE Reklamacje(
 	ID_Reklamacji		INTEGER,
@@ -442,7 +598,7 @@ BEGIN
 			wyniesc ilosc transakcji do zmiennej, najlepiej globalnej, ewentualnie opracowa?akie?prawdzanie ilosci zmiennych
 			np za pomoca Select * count, ktory policzy ilosc rekordow w konkretnej tabeli
 			*/
-			FK_Transakcja := dbms_random.VALUE(1, 1000); 
+			FK_Transakcja := dbms_random.VALUE(1, 100); 
 			FK_Obslugujacy := dbms_random.VALUE(1, 50);
 			FK_Pracownik := dbms_random.VALUE(1, 50);
 			Data_wplyniecia := to_date(trunc(dbms_random.VALUE(2451545,5373484)),'J'); /* ten zakres integerow odpowiada 01-sty-2000 do 31-dec-9999 */
