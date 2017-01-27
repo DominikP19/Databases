@@ -453,7 +453,7 @@ BEGIN
   CLOSE c4;
   SELECT COUNT(*) INTO Ilosc_pracownikow FROM Pracownicy;
 
-	Ilosc:= 5000;
+	Ilosc:= 500;
 	
 	FOR i IN 1..Ilosc LOOP
 			FK_Kupujacy := dbms_random.VALUE(1, Ilosc_klientow); 
@@ -506,7 +506,7 @@ CREATE OR REPLACE PROCEDURE Reklamacje_gen AS
   /* wybranie pracownikow z wykluczeniem sprzatania */
    CURSOR c3 IS
     SELECT ID_Pracownika FROM Pracownicy
-    WHERE Stanowisko != 'Sprzatanie';  /* powinna byc oddzielna tabela ze stanowiskami i tu powinno byæ odniesienie do id */
+    WHERE Stanowisko != 'Sprzatanie';  /* powinna byc oddzielna tabela ze stanowiskami i tu powinno byÄ‡ odniesienie do id */
     
     Ilosc_pracownikow NUMBER;
     Ilosc_obslugujacych NUMBER;
@@ -551,7 +551,7 @@ Execute Reklamacje_gen();
 
 /*SELECT * FROM Reklamacje;  */
 
-/*sekcja zapytañ do bazy*/
+/*sekcja zapytaÅ„ do bazy*/
 
 --projekcja
 SELECT p.ID_Pracownika, p.Imie_nazwisko, p.Stanowisko, t.ID_Transakcji, t.FK_Kupujacy, t.FK_Pracownik
