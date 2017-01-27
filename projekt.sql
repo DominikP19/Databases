@@ -1,57 +1,35 @@
 /*
 Autor: Dominik Piliszek-Slowinski
 */
-DROP TABLE Klienci CASCADE CONSTRAINTS; 
 DROP TRIGGER Klienci_trigger;
-/*DROP SEQUENCE Klienci_seq;*/
-DROP TABLE Obsluga_prawna CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Obsluga_prawna_seq;*/
+DROP SEQUENCE Klienci_seq;
+DROP SEQUENCE Obsluga_prawna_seq;
 DROP TRIGGER Obsluga_prawna_trigger;
-DROP TABLE Transakcje CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Transakcje_seq;*/
+DROP SEQUENCE Transakcje_seq;
 DROP TRIGGER Transakcje_trigger;
-DROP TABLE Oferty CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Oferty_seq;*/
+DROP SEQUENCE Oferty_seq;
 DROP TRIGGER Oferty_trigger;
-DROP TABLE Nieruchomosci CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Nieruchomosci_seq;*/
+DROP SEQUENCE Nieruchomosci_seq;
 DROP TRIGGER Nieruchomosci_trigger;
-DROP TABLE Reklamy CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Reklamy_seq;*/
+DROP SEQUENCE Reklamy_seq;
 DROP TRIGGER Reklamy_trigger;
-DROP TABLE Pracownicy CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Pracownicy_seq;*/
+DROP SEQUENCE Pracownicy_seq;
 DROP TRIGGER Pracownicy_trigger;
-DROP TABLE Reklamacje CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Reklamacje_seq;*/
+DROP SEQUENCE Reklamacje_seq;
 DROP TRIGGER Reklamacje_trigger;
-DROP TABLE Skutecznosc_reklam CASCADE CONSTRAINTS;
-/*DROP SEQUENCE Skutecznosc_reklam_seq;*/
+DROP SEQUENCE Skutecznosc_reklam_seq;
 DROP TRIGGER Skutecznosc_reklam_trigger;
-
-ALTER SESSION SET nls_date_format = 'DD/MM/YYYY';
-
-CREATE TABLE Klienci(
-	ID_Klienta		INTEGER,
-	Imie_Nazwisko	varchar2(80) NOT NULL,
-	PESEL			varchar2(11) NOT NULL,	/*zamienic na number*/
-	Numer_tel		varchar2(9) NOT NULL,	/*zamienic nie number*/
-	Adres			varchar2(40),
-	Kod_pocztowy	varchar2(6)
-);
 
 /* sekwencja i trigger inkrementujacy klucz glowny*/
 CREATE SEQUENCE Klienci_seq;
+
 CREATE OR REPLACE TRIGGER Klienci_trigger
 BEFORE INSERT ON Klienci
 FOR EACH ROW
 BEGIN
 	:NEW.ID_Klienta := klienci_seq.NEXTVAL;
-END;
-
-ALTER TABLE Klienci ADD CONSTRAINT klienci_pk PRIMARY KEY(ID_Klienta);
-
-
+END Klienci_trigger;
+/
 /**/
 CREATE OR REPLACE PROCEDURE Klienci_gen AS
 	Ilosc NUMBER(10);
@@ -94,29 +72,22 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano klientow!');
 END Klienci_gen;
+/
 
 DELETE FROM Klienci;
 Execute Klienci_gen();
 
 /*SELECT * FROM Klienci;  //sprawdzenie czy wszystko si?odalo */
 
-CREATE TABLE Obsluga_prawna(
-	ID_Osoby			INTEGER,
-	Imie_Nazwisko		varchar2(80) NOT NULL,
-	Zawod				varchar2(40) NOT NULL,
-	Wynagrodzenie_stale	NUMBER(10,2),
-	Prowizja_proc		varchar2(3)
-);
-
 CREATE SEQUENCE Obsluga_prawna_seq;
+
 CREATE OR REPLACE TRIGGER Obsluga_prawna_trigger
 BEFORE INSERT ON Obsluga_prawna
 FOR EACH ROW
 BEGIN
 	:NEW.ID_Osoby := Obsluga_prawna_seq.NEXTVAL;
-END;
-
-ALTER TABLE Obsluga_prawna ADD CONSTRAINT obsluga_prawna_pk PRIMARY KEY(ID_Osoby);
+END Obsluga_prawna;
+/
 
 CREATE OR REPLACE PROCEDURE Obsluga_prawna_gen AS
 	Ilosc NUMBER(10);
@@ -147,28 +118,24 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano Obsluge prawna!');
 END Obsluga_prawna_gen;
+/
 
 DELETE FROM Obsluga_prawna;
 Execute Obsluga_prawna_gen();
 
 /*SELECT * FROM Obsluga_prawna;  //sprawdzenie czy wszystko si?odalo */
 
-CREATE TABLE Pracownicy(
-	ID_Pracownika	INTEGER,
-	Imie_Nazwisko	varchar2(80) NOT NULL,
-	Stanowisko		varchar2(40) NOT NULL,
-	Wynagrodzenie	NUMBER(10,2)
-);
+
 /*sekwencja z triggerem dodajaca id do kazdego rekordu*/
 CREATE SEQUENCE Pracownicy_seq;
+
 CREATE OR REPLACE TRIGGER Pracownicy_trigger
 BEFORE INSERT ON Pracownicy
 FOR EACH ROW
 BEGIN
 	:NEW.ID_Pracownika := Pracownicy_seq.NEXTVAL;
-END;
-
-ALTER TABLE Pracownicy ADD CONSTRAINT pracownicy_pk PRIMARY KEY(ID_Pracownika);
+END Pracownicy_trigger;
+/
 
 CREATE OR REPLACE PROCEDURE Pracownicy_gen AS
 	Ilosc NUMBER(10);
@@ -197,29 +164,20 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano rekordy do tabeli Pracownicy!');
 END Pracownicy_gen;
+/
 
 DELETE FROM Pracownicy;
 Execute Pracownicy_gen();
 
-
-CREATE TABLE Nieruchomosci(
-	ID_Nieruchomosci	INTEGER,
-	Miasto				varchar2(40),
-	Adres				varchar2(40),
-	Kod_pocztowy		varchar2(6),
-	Metraz				NUMBER(6),
-	Wyposazenie			varchar2(300)
-);
-
 CREATE SEQUENCE Nieruchomosci_seq;
+
 CREATE OR REPLACE TRIGGER Nieruchomosci_trigger
 BEFORE INSERT ON Nieruchomosci
 FOR EACH ROW
 BEGIN
 	:NEW.ID_Nieruchomosci := Nieruchomosci_seq.NEXTVAL;
 END;
-
-ALTER TABLE Nieruchomosci ADD CONSTRAINT nieruchomosci_pk PRIMARY KEY(ID_Nieruchomosci);
+/
 
 CREATE OR REPLACE PROCEDURE Nieruchomosci_gen AS
 	Ilosc NUMBER(10);
@@ -262,15 +220,10 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano rekordy do tabeli Nieruchomosci!');
 END Nieruchomosci_gen;
+/
 
 DELETE FROM Nieruchomosci;
 Execute Nieruchomosci_gen();
-
-CREATE TABLE Oferty(
-	ID_Oferty		INTEGER,
-	FK_Nieruchomosc	INTEGER,
-	Cena_ofertowa	NUMBER(10,2)
-);
 
 CREATE SEQUENCE Oferty_seq;
 CREATE OR REPLACE TRIGGER Oferty_trigger
@@ -279,9 +232,7 @@ FOR EACH ROW
 BEGIN
 	:NEW.ID_Oferty := Oferty_seq.NEXTVAL;
 END;
-
-ALTER TABLE Oferty ADD CONSTRAINT oferty_pk PRIMARY KEY(ID_Oferty);
-ALTER TABLE Oferty ADD CONSTRAINT oferty_fk1 FOREIGN KEY(FK_Nieruchomosc) REFERENCES Nieruchomosci(ID_nieruchomosci) ON DELETE CASCADE;
+/
 
 CREATE OR REPLACE PROCEDURE Oferty_gen AS
 	Ilosc NUMBER(10);
@@ -312,17 +263,11 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano reklamacje do bazy!');
 END Oferty_gen;
+/
 
 DELETE FROM Oferty;
 Execute Oferty_gen();
 
-CREATE TABLE Reklamy(
-	ID_Reklamy		INTEGER,
-	Cena_reklamy	NUMBER(4,2),
-	Tresc_reklamy	varchar2(500),
-	Umiejscowienie	varchar2(60),
-	FK_Pracownik	INTEGER	/*pracownik odpowiedzialny za obsluge reklamy*/
-);
 
 CREATE SEQUENCE Reklamy_seq;
 CREATE OR REPLACE TRIGGER Reklamy_trigger
@@ -331,11 +276,7 @@ FOR EACH ROW
 BEGIN
 	:NEW.ID_Reklamy := Reklamy_seq.NEXTVAL;
 END;
-
-ALTER TABLE Reklamy ADD CONSTRAINT reklamy_pk PRIMARY KEY(ID_Reklamy);
-ALTER TABLE Reklamy ADD CONSTRAINT reklamy_fk1 FOREIGN KEY(FK_Pracownik) REFERENCES Pracownicy(ID_Pracownika) ON DELETE CASCADE;
-/*ALTER TABLE Reklamy ADD CONSTRAINT reklamy_umiejscowenie_check
-CHECK(Umiejscowienie IN ('Internet','Gazeta', 'Telegazeta', 'Social Media'));*/
+/
 
 CREATE OR REPLACE PROCEDURE Reklamy_gen AS
 /* w przypadku tej procedury trzeba zawezic pracownikow*/
@@ -382,17 +323,11 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano reklamy do bazy!');
 END Reklamy_gen;
+/
 
 DELETE FROM Reklamy;
 Execute Reklamy_gen();
 
-/*tabela odpowiedajaca za polaczenie okreslonej reklamy z konkretna oferta nieruchomosci - jedna nieruchomosc moze byc oferowana 
-za pomoca wielu reklam w wielu miejscach*/
-CREATE TABLE Skutecznosc_reklam(
-	ID_1				INTEGER,
-	FK_Reklama		INTEGER,
-	FK_Oferta		INTEGER
-);
 
 CREATE SEQUENCE Skutecznosc_reklam_seq;
 CREATE OR REPLACE TRIGGER Skutecznosc_reklam_trigger
@@ -401,11 +336,8 @@ FOR EACH ROW
 BEGIN
 	:NEW.ID_1 := Skutecznosc_reklam_seq.NEXTVAL;
 END;
+/
 
-
-ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_pk PRIMARY KEY(ID_1);
-ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_fk1 FOREIGN KEY(FK_Reklama) REFERENCES Reklamy(ID_Reklamy) ON DELETE CASCADE;
-ALTER TABLE Skutecznosc_reklam ADD CONSTRAINT skutecznosc_reklam_fk2 FOREIGN KEY(FK_Oferta) REFERENCES Oferty(ID_Oferty) ON DELETE CASCADE;
 
 CREATE OR REPLACE PROCEDURE Skutecznosc_reklam_gen AS
   Ilosc NUMBER(10);
@@ -450,18 +382,12 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie uzupelnino tabele Skutecznosc_reklam!');
 END Skutecznosc_reklam_gen;
+/
 
 DELETE FROM Skutecznosc_reklam;
 Execute Skutecznosc_reklam_gen();
 
-CREATE TABLE Transakcje(
-	ID_Transakcji		INTEGER,
-	FK_Obsluga_prawna	INTEGER,
-	FK_Kupujacy			INTEGER,
-	FK_Sprzedajacy		INTEGER,
-	FK_Pracownik		INTEGER,
-	FK_Oferta			INTEGER
-);
+
 
 CREATE SEQUENCE Transakcje_seq;
 CREATE OR REPLACE TRIGGER Transakcje_trigger /*dorobic sprawdzanie czy kupujacy nie jest sprzedajacym na after insert*/
@@ -470,13 +396,7 @@ FOR EACH ROW
 BEGIN
 	:NEW.ID_Transakcji := Transakcje_seq.NEXTVAL;
 END;
-
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_pk PRIMARY KEY(ID_Transakcji); 
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk1 FOREIGN KEY(FK_Obsluga_prawna) REFERENCES Obsluga_prawna(ID_Osoby) ON DELETE CASCADE;
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk2 FOREIGN KEY(FK_Kupujacy) REFERENCES Klienci(ID_Klienta) ON DELETE CASCADE;
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk3 FOREIGN KEY(FK_Sprzedajacy) REFERENCES Klienci(ID_Klienta) ON DELETE CASCADE;
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk4 FOREIGN KEY(FK_Pracownik) REFERENCES Pracownicy(ID_Pracownika) ON DELETE CASCADE;
-ALTER TABLE Transakcje ADD CONSTRAINT transakcje_fk5 FOREIGN KEY(FK_Oferta) REFERENCES Oferty(ID_Oferty) ON DELETE CASCADE;
+/
 
 CREATE OR REPLACE PROCEDURE Transakcje_gen AS
   Ilosc NUMBER(10);
@@ -533,7 +453,7 @@ BEGIN
   CLOSE c4;
   SELECT COUNT(*) INTO Ilosc_pracownikow FROM Pracownicy;
 
-	Ilosc:= 250;
+	Ilosc:= 5000;
 	
 	FOR i IN 1..Ilosc LOOP
 			FK_Kupujacy := dbms_random.VALUE(1, Ilosc_klientow); 
@@ -546,19 +466,12 @@ BEGIN
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie uzupelnino tabele Skutecznosc_reklam!');
 END Transakcje_gen;
+/
 
 DELETE FROM Transakcje;
 Execute Transakcje_gen(); /*licznik nadal gdzies wychodzi*/
 
-CREATE TABLE Reklamacje(
-	ID_Reklamacji		INTEGER,
-	Tresc_reklamacji	varchar2(500),
-	FK_Transakcja		INTEGER,
-	FK_Obslugujacy		INTEGER,
-	FK_Pracownik		INTEGER,
-	Data_wplyniecia		DATE,
-	Data_zakonczenia	DATE
-);
+
 /* sekwencja i trigger dla tabeli z reklamacjami */
 CREATE SEQUENCE Reklamacje_seq;
 CREATE OR REPLACE TRIGGER Reklamacje_trigger
@@ -567,13 +480,7 @@ FOR EACH ROW
 BEGIN
 	:NEW.ID_Reklamacji := Reklamacje_seq.NEXTVAL;
 END;
-
-
-ALTER TABLE Reklamacje ADD CONSTRAINT reklamacja_pk PRIMARY KEY(ID_Reklamacji);
-ALTER TABLE Reklamacje ADD CONSTRAINT reklamacja_fk1 FOREIGN KEY(FK_Transakcja) REFERENCES Transakcje(ID_Transakcji) ON DELETE CASCADE;
-/*ALTER TABLE Reklamacje ADD CONSTRAINT reklamacja_fk2 FOREIGN KEY(FK_Nieruchomosc) REFERENCES Nieruchomosci(ID_Nieruchomosci);*/
-ALTER TABLE Reklamacje ADD CONSTRAINT reklamacja_fk3 FOREIGN KEY(FK_Obslugujacy) REFERENCES Obsluga_prawna(ID_Osoby) ON DELETE CASCADE;
-ALTER TABLE Reklamacje ADD CONSTRAINT reklamacja_fk4 FOREIGN KEY(FK_Pracownik) REFERENCES Pracownicy(ID_Pracownika) ON DELETE CASCADE;
+/
 
 CREATE OR REPLACE PROCEDURE Reklamacje_gen AS
 	Ilosc NUMBER(10);
@@ -586,7 +493,40 @@ CREATE OR REPLACE PROCEDURE Reklamacje_gen AS
 	Data_zakonczenia DATE;
 	Ilosc_reklamacji NUMBER(10);
 	Losowa_reklamacja NUMBER(10);
+  TYPE IDsTabTransakcje IS TABLE OF Transakcje.ID_Transakcji%TYPE;
+  ids1 IDsTabTransakcje;
+  TYPE IDsTabObslugujacy IS TABLE OF Obsluga_prawna.ID_Osoby%TYPE;
+  ids2 IDsTabObslugujacy;
+  TYPE IDsTabPracownicy IS TABLE OF Pracownicy.ID_Pracownika%TYPE;
+  ids3 IDsTabPracownicy;
+  CURSOR c1 IS
+    SELECT ID_Transakcji FROM Transakcje;
+  CURSOR c2 IS
+    SELECT ID_Osoby FROM Obsluga_prawna;
+  /* wybranie pracownikow z wykluczeniem sprzatania */
+   CURSOR c3 IS
+    SELECT ID_Pracownika FROM Pracownicy
+    WHERE Stanowisko != 'Sprzatanie';  /* powinna byc oddzielna tabela ze stanowiskami i tu powinno byæ odniesienie do id */
+    
+    Ilosc_pracownikow NUMBER;
+    Ilosc_obslugujacych NUMBER;
+    Ilosc_transakcji NUMBER;
+    
 BEGIN
+
+  OPEN c1;
+    FETCH c1 BULK COLLECT INTO ids1;
+  CLOSE c1;
+  OPEN c2;
+    FETCH c2 BULK COLLECT INTO ids2;
+  CLOSE c2;
+   OPEN c3;
+    FETCH c3 BULK COLLECT INTO ids3;
+  CLOSE c3;
+  SELECT COUNT(*) INTO Ilosc_pracownikow FROM Pracownicy
+    WHERE Stanowisko != 'Sprzatanie';
+  SELECT COUNT(*) INTO Ilosc_obslugujacych FROM Obsluga_prawna;
+  SELECT COUNT(*) INTO Ilosc_transakcji FROM Transakcje;
 	Ilosc:= 250;
 	Tresc_reklamacji := TABSTR('Bo zupa byla za slona', 'Nie podoba mi sie Pani obslugujaca transakcje ze strony agencji', 'Dzwonilem 124 razy i nikt nie odbieral.', 
 	'Zniewazono mnie slowem i czynem', 'Nie zauwazylem wczesniej, ze na srodku salonu jest dziura. Chcialbym oddac dom i odzyskac gotowke.');
@@ -594,23 +534,73 @@ BEGIN
 	
 	FOR i IN 1..Ilosc LOOP
 			Losowa_reklamacja := dbms_random.VALUE(1,Ilosc_reklamacji);
-			/* 
-			wyniesc ilosc transakcji do zmiennej, najlepiej globalnej, ewentualnie opracowa?akie?prawdzanie ilosci zmiennych
-			np za pomoca Select * count, ktory policzy ilosc rekordow w konkretnej tabeli
-			*/
-			FK_Transakcja := dbms_random.VALUE(1, 100); 
-			FK_Obslugujacy := dbms_random.VALUE(1, 50);
-			FK_Pracownik := dbms_random.VALUE(1, 50);
+			FK_Transakcja := dbms_random.VALUE(1, Ilosc_transakcji); 
+			FK_Obslugujacy := dbms_random.VALUE(1, Ilosc_obslugujacych);
+			FK_Pracownik := dbms_random.VALUE(1, Ilosc_pracownikow);
 			Data_wplyniecia := to_date(trunc(dbms_random.VALUE(2451545,5373484)),'J'); /* ten zakres integerow odpowiada 01-sty-2000 do 31-dec-9999 */
 			Data_zakonczenia := Data_wplyniecia + 14; /*dodaj 2 tygodnie na zakonczenie sprawy*/
-			INSERT INTO Reklamacje VALUES (NULL, Tresc_reklamacji(Losowa_reklamacja), FK_Transakcja, FK_Obslugujacy,
-			FK_Pracownik, Data_wplyniecia, Data_zakonczenia);
+			INSERT INTO Reklamacje VALUES (NULL, Tresc_reklamacji(Losowa_reklamacja), ids1(FK_Transakcja), ids2(FK_Obslugujacy),
+			ids3(FK_Pracownik), Data_wplyniecia, Data_zakonczenia);
 	END LOOP;
 	DBMS_OUTPUT.put_line('Pomyslnie dodano reklamacje do bazy!');
 END Reklamacje_gen;
+/
 
 DELETE FROM Reklamacje;
 Execute Reklamacje_gen();
 
-/*SELECT * FROM Reklamacje;  //sprawdzenie czy wszystko si?odalo */
+/*SELECT * FROM Reklamacje;  */
+
+/*sekcja zapytañ do bazy*/
+
+--projekcja
+SELECT p.ID_Pracownika, p.Imie_nazwisko, p.Stanowisko, t.ID_Transakcji, t.FK_Kupujacy, t.FK_Pracownik
+FROM Pracownicy p, Transakcje t
+WHERE p.ID_Pracownika = t.FK_Pracownik
+ORDER BY 3,4;
+--projekcja
+SELECT p.ID_Pracownika, p.Imie_nazwisko, p.Stanowisko, t.ID_Transakcji, t.FK_Kupujacy, t.FK_Pracownik
+FROM Pracownicy p JOIN Transakcje t
+ON p.ID_Pracownika = t.FK_Pracownik
+ORDER BY 3,4;
+
+SELECT p.ID_Pracownika, p.Imie_nazwisko, p.Stanowisko, t.ID_Transakcji, o.ID_Oferty, n.Miasto, n.Adres, n.Kod_pocztowy
+FROM Pracownicy p JOIN Transakcje t
+ON p.ID_Pracownika = t.FK_Pracownik
+JOIN Oferty o ON t.FK_Oferta = o.ID_Oferty
+JOIN Nieruchomosci n ON o.FK_Nieruchomosc = n.ID_Nieruchomosci
+ORDER BY 2,3;
+
+/*SELECT t.ID_Transakcji, p.Imie_Nazwisko, p.Stanowisko
+FROM Pracownicy p, Transakcje t
+WHERE t.FK_Pracownik IN (
+SELECT DISTINCT ID_Pracownika FROM Pracownicy
+WHERE Stanowisko = 'Sprzatanie');*/
+
+SELECT FK_Kupujacy, COUNT(*) as liczba_nieruchomosci
+FROM Transakcje
+GROUP BY FK_Kupujacy;
+
+SELECT * FROM
+(SELECT FK_Kupujacy, COUNT(*) as liczba_nieruchomosci
+FROM Transakcje
+GROUP BY FK_Kupujacy
+ORDER BY 1);
+
+
+SELECT * 
+FROM (SELECT rownum as linia, ID_Osoby, Imie_Nazwisko
+FROM Obsluga_prawna
+ORDER BY 1)
+WHERE linia between 10 and 20;
+
+EXECUTE dbms_stats.gather_tablestats('dpilisze', Transakcje);
+EXECUTE dbms_stats.gather_tablestats('dpilisze', Klienci);
+
+DROP INDEX Klient_index_1;
+CREATE INDEX Klient_index_1 ON Klienci(ID_Klienta);
+DROP INDEX Klient_index_2;
+CREATE INDEX Klient_index_2 ON Klienci(ID_Klienta, Imie_nazwisko, Adres);
+
+
 
