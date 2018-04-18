@@ -14,8 +14,8 @@ ALTER SESSION SET nls_date_format = 'DD/MM/YYYY';
 CREATE TABLE Klienci(
 	ID_Klienta		INTEGER,
 	Imie_Nazwisko	varchar2(80) NOT NULL,
-	PESEL			varchar2(11) NOT NULL,	/*zamienic na number*/
-	Numer_tel		varchar2(9) NOT NULL,	/*zamienic nie number*/
+	PESEL			number(11) NOT NULL,	/*zamienic na number*/
+	Numer_tel		number(9) NOT NULL,	/*zamienic nie number*/
 	Adres			varchar2(40),
 	Kod_pocztowy	varchar2(6)
 );
